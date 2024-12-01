@@ -9,7 +9,6 @@ export const extractGPSData = (file: File): Promise<GPSCoordinates> => {
     
     reader.onload = async (e) => {
       try {
-        // Load EXIF data parser
         const EXIF = await import('exif-js');
         
         const img = new Image();
@@ -20,10 +19,18 @@ export const extractGPSData = (file: File): Promise<GPSCoordinates> => {
             const exifData = EXIF.getAllTags(this);
             
             if (exifData?.GPSLatitude && exifData?.GPSLongitude) {
-              const latitude = EXIF.GPSLatitudeRef === 'S' ? 
-                -EXIF.GPSLatitude : EXIF.GPSLatitude;
-              const longitude = EXIF.GPSLongitudeRef === 'W' ? 
-                -EXIF.GPSLongitude : EXIF.GPSLongitude;
+              // Convert GPS coordinates to decimal degrees
+              const latDegrees = exifData.GPSLatitude[0] + 
+                exifData.GPSLatitude[1] / 60 + 
+                exifData.GPSLatitude[2] / 3600;
+              
+              const lonDegrees = exifData.GPSLongitude[0] + 
+                exifData.GPSLongitude[1] / 60 + 
+                exifData.GPSLongitude[2] / 3600;
+              
+              // Apply the reference (N/S, E/W)
+              const latitude = exifData.GPSLatitudeRef === 'S' ? -latDegrees : latDegrees;
+              const longitude = exifData.GPSLongitudeRef === 'W' ? -lonDegrees : lonDegrees;
               
               resolve({ latitude, longitude });
             } else {
