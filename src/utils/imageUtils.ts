@@ -3,7 +3,7 @@ interface GPSCoordinates {
   longitude: number | null;
 }
 
-export const extractGPSData = (file: File): Promise<GPSCoordinates> => {
+export const extractGPSData = async (file: File): Promise<GPSCoordinates> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -18,17 +18,19 @@ export const extractGPSData = (file: File): Promise<GPSCoordinates> => {
           EXIF.getData(img as any, function(this: any) {
             const exifData = EXIF.getAllTags(this);
             
-            if (exifData?.GPSLatitude && exifData?.GPSLongitude) {
-              // Convert GPS coordinates to decimal degrees
-              const latDegrees = exifData.GPSLatitude[0] + 
+            if (exifData && 'GPSLatitude' in exifData && 'GPSLongitude' in exifData) {
+              const latDegrees = (
+                exifData.GPSLatitude[0] + 
                 exifData.GPSLatitude[1] / 60 + 
-                exifData.GPSLatitude[2] / 3600;
+                exifData.GPSLatitude[2] / 3600
+              );
               
-              const lonDegrees = exifData.GPSLongitude[0] + 
+              const lonDegrees = (
+                exifData.GPSLongitude[0] + 
                 exifData.GPSLongitude[1] / 60 + 
-                exifData.GPSLongitude[2] / 3600;
+                exifData.GPSLongitude[2] / 3600
+              );
               
-              // Apply the reference (N/S, E/W)
               const latitude = exifData.GPSLatitudeRef === 'S' ? -latDegrees : latDegrees;
               const longitude = exifData.GPSLongitudeRef === 'W' ? -lonDegrees : lonDegrees;
               
