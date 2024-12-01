@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Login from "@/pages/Login";
 import Index from "@/pages/Index";
 import AdminDashboard from "@/pages/admin/Dashboard";
+import ConsumerDashboard from "@/pages/consumer/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/consumer/dashboard" element={<ConsumerDashboard />} />
             <Route path="/" element={<Navigate to="/login" replace />} />
           </Routes>
           <Toaster />
