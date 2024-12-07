@@ -8,6 +8,12 @@ import Login from "@/pages/Login";
 import Index from "@/pages/Index";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import ConsumerDashboard from "@/pages/consumer/Dashboard";
+import AddCustomer from "@/pages/admin/AddCustomer";
+import ManageMeters from "@/pages/admin/ManageMeters";
+import AddMeter from "@/pages/admin/AddMeter";
+import AdminProfile from "@/pages/admin/Profile";
+import AdminCustomers from "@/pages/admin/Customers";
+import AdminBills from "@/pages/admin/Bills";
 
 const queryClient = new QueryClient();
 
@@ -17,10 +23,16 @@ const App = () => {
       <TooltipProvider>
         <BrowserRouter>
           <AuthProvider>
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-white">
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/customers/add" element={<AddCustomer />} />
+                <Route path="/admin/customers" element={<AdminCustomers />} />
+                <Route path="/admin/meters" element={<ManageMeters />} />
+                <Route path="/admin/meters/add" element={<AddMeter />} />
+                <Route path="/admin/profile" element={<AdminProfile />} />
+                <Route path="/admin/bills" element={<AdminBills />} />
                 <Route path="/consumer/dashboard" element={<ConsumerDashboard />} />
                 <Route path="/" element={<Index />} />
               </Routes>
