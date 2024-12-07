@@ -1,14 +1,21 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Settings, Home, FileText, LogOut } from "lucide-react";
+import { Users, Settings, Home, FileText, LogOut, Plus, List } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeMeters: 0,
+    totalBills: 0
+  });
 
   useEffect(() => {
     if (!user || user.role !== "admin") {
@@ -16,13 +23,30 @@ const AdminDashboard = () => {
     }
   }, [user, navigate]);
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white text-black">
       {/* Top Bar */}
       <div className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-primary">Admin Dashboard</h1>
-          <Button variant="outline" onClick={logout} className="gap-2">
+          <Button variant="outline" onClick={handleLogout} className="gap-2">
             <LogOut className="h-4 w-4" />
             Logout
           </Button>
@@ -41,7 +65,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{stats.totalUsers}</div>
             </CardContent>
           </Card>
           <Card>
@@ -50,7 +74,7 @@ const AdminDashboard = () => {
               <Settings className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{stats.activeMeters}</div>
             </CardContent>
           </Card>
           <Card>
@@ -59,7 +83,7 @@ const AdminDashboard = () => {
               <FileText className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">{stats.totalBills}</div>
             </CardContent>
           </Card>
         </div>
@@ -67,29 +91,32 @@ const AdminDashboard = () => {
         {/* Quick Actions */}
         <section className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Link to="/admin/customers/add">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Users className="h-4 w-4" />
-                Add Customer
+              <Button variant="outline" className="w-full justify-start gap-2 h-auto py-4">
+                <Plus className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="font-semibold">Add Customer</div>
+                  <div className="text-sm text-gray-500">Register a new customer</div>
+                </div>
               </Button>
             </Link>
             <Link to="/admin/meters/add">
-              <Button variant="outline" className="w-full justify-start gap-2">
+              <Button variant="outline" className="w-full justify-start gap-2 h-auto py-4">
                 <Settings className="h-4 w-4" />
-                Add Meter
+                <div className="text-left">
+                  <div className="font-semibold">Add Meter</div>
+                  <div className="text-sm text-gray-500">Register a new meter</div>
+                </div>
               </Button>
             </Link>
             <Link to="/admin/meters">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Settings className="h-4 w-4" />
-                Manage Meters
-              </Button>
-            </Link>
-            <Link to="/admin/profile">
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <Users className="h-4 w-4" />
-                Edit Profile
+              <Button variant="outline" className="w-full justify-start gap-2 h-auto py-4">
+                <List className="h-4 w-4" />
+                <div className="text-left">
+                  <div className="font-semibold">Manage Meters</div>
+                  <div className="text-sm text-gray-500">View and manage meters</div>
+                </div>
               </Button>
             </Link>
           </div>
@@ -100,7 +127,22 @@ const AdminDashboard = () => {
           <h3 className="text-xl font-semibold mb-4">Recent Activity</h3>
           <Card>
             <CardContent className="p-6">
-              <p className="text-gray-500">No recent activity to display.</p>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="font-medium">New customer registered</p>
+                    <p className="text-gray-500">2 minutes ago</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <FileText className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="font-medium">Bill generated</p>
+                    <p className="text-gray-500">1 hour ago</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </section>
@@ -116,7 +158,7 @@ const AdminDashboard = () => {
             </Link>
             <Link to="/admin/customers" className="flex flex-col items-center text-gray-500 hover:text-primary">
               <Users className="h-5 w-5" />
-              <span className="text-xs mt-1">Consumers</span>
+              <span className="text-xs mt-1">Customers</span>
             </Link>
             <Link to="/admin/bills" className="flex flex-col items-center text-gray-500 hover:text-primary">
               <FileText className="h-5 w-5" />
