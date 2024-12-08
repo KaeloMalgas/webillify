@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
         localStorage.setItem("webill_user", JSON.stringify(userData));
         toast.success("Welcome back!");
-        navigate("/dashboard");
+        navigate("/consumer/dashboard"); // Updated to use the correct route
       } else {
         throw new Error("Invalid credentials");
       }

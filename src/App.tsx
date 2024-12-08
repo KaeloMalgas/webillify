@@ -34,6 +34,7 @@ const App = () => {
                 <Route path="/admin/profile" element={<AdminProfile />} />
                 <Route path="/admin/bills" element={<AdminBills />} />
                 <Route path="/consumer/dashboard" element={<ConsumerDashboard />} />
+                <Route path="/dashboard" element={<ConsumerDashboard />} /> {/* Added this route as a fallback */}
                 <Route path="/" element={<Index />} />
               </Routes>
               <Toaster />
