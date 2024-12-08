@@ -1,13 +1,21 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { 
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser 
+} from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../config/firebase';
 
 type User = {
   id: string;
   email: string;
   role: "admin" | "consumer";
   name: string;
-  meterId?: string; // Added meterId as optional property
+  meterId?: string;
 };
 
 type AuthContextType = {
@@ -25,57 +33,70 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for stored user data
-    const storedUser = localStorage.getItem("webill_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data() as Omit<User, 'id'>;
+            setUser({
+              id: firebaseUser.uid,
+              ...userData
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          toast.error('Error loading user data');
+        }
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (email: string, password: string, role: "admin" | "consumer") => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Dummy validation
-      if (email === "admin@webill.com" && password === "admin123" && role === "admin") {
-        const userData: User = {
-          id: "1",
-          email,
-          role: "admin",
-          name: "Admin User",
-        };
-        setUser(userData);
-        localStorage.setItem("webill_user", JSON.stringify(userData));
-        toast.success("Welcome back, Admin!");
-        navigate("/admin/dashboard");
-      } else if (email === "user@webill.com" && password === "user123" && role === "consumer") {
-        const userData: User = {
-          id: "2",
-          email,
-          role: "consumer",
-          name: "John Doe",
-          meterId: "METER123", // Added sample meterId for consumer
-        };
-        setUser(userData);
-        localStorage.setItem("webill_user", JSON.stringify(userData));
-        toast.success("Welcome back!");
-        navigate("/consumer/dashboard"); // Updated to use the correct route
-      } else {
-        throw new Error("Invalid credentials");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+      
+      if (!userDoc.exists()) {
+        throw new Error('User data not found');
       }
+
+      const userData = userDoc.data() as Omit<User, 'id'>;
+      
+      if (userData.role !== role) {
+        throw new Error('Invalid role for this user');
+      }
+
+      setUser({
+        id: userCredential.user.uid,
+        ...userData
+      });
+
+      toast.success(`Welcome back${userData.role === 'admin' ? ', Admin' : ''}!`);
+      navigate(userData.role === 'admin' ? '/admin/dashboard' : '/consumer/dashboard');
     } catch (error) {
-      toast.error("Invalid credentials. Please try again.");
+      console.error('Login error:', error);
+      toast.error('Invalid credentials. Please try again.');
       throw error;
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("webill_user");
-    toast.success("Logged out successfully");
-    navigate("/login");
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      localStorage.removeItem("webill_user");
+      toast.success("Logged out successfully");
+      navigate("/login");
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Error logging out');
+    }
   };
 
   return (
