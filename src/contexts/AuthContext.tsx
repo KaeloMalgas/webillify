@@ -7,6 +7,7 @@ type User = {
   email: string;
   role: "admin" | "consumer";
   name: string;
+  meterId?: string; // Added meterId as optional property
 };
 
 type AuthContextType = {
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email,
           role: "consumer",
           name: "John Doe",
+          meterId: "METER123", // Added sample meterId for consumer
         };
         setUser(userData);
         localStorage.setItem("webill_user", JSON.stringify(userData));
