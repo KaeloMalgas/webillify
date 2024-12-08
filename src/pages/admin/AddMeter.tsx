@@ -17,21 +17,23 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  latitude: z.string().transform((val) => parseFloat(val)),
-  longitude: z.string().transform((val) => parseFloat(val)),
+  latitude: z.number(),
+  longitude: z.number(),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 const AddMeter = () => {
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      latitude: "",
-      longitude: "",
+      latitude: 0,
+      longitude: 0,
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: FormValues) => {
     try {
       // TODO: Implement actual meter creation logic
       console.log("Meter data:", values);
@@ -77,7 +79,8 @@ const AddMeter = () => {
                           placeholder="Enter latitude" 
                           type="number" 
                           step="any"
-                          {...field} 
+                          onChange={e => field.onChange(parseFloat(e.target.value))}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
@@ -96,7 +99,8 @@ const AddMeter = () => {
                           placeholder="Enter longitude" 
                           type="number" 
                           step="any"
-                          {...field} 
+                          onChange={e => field.onChange(parseFloat(e.target.value))}
+                          value={field.value}
                         />
                       </FormControl>
                       <FormMessage />
